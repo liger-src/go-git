@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/go-git/go-billy/v5"
 )
@@ -15,6 +16,8 @@ type RepositoryFilesystem struct {
 	dotGitFs       billy.Filesystem
 	commonDotGitFs billy.Filesystem
 }
+
+var _ billy.Filesystem = &RepositoryFilesystem{}
 
 func NewRepositoryFilesystem(dotGitFs, commonDotGitFs billy.Filesystem) *RepositoryFilesystem {
 	return &RepositoryFilesystem{
@@ -108,4 +111,12 @@ func (fs *RepositoryFilesystem) Chroot(path string) (billy.Filesystem, error) {
 
 func (fs *RepositoryFilesystem) Root() string {
 	return fs.dotGitFs.Root()
+}
+
+func (fs *RepositoryFilesystem) BirthTime(fi os.FileInfo) (bool, time.Time) {
+	return false, time.Time{}
+}
+
+func (fs *RepositoryFilesystem) ObjectID(path string, fi os.FileInfo) uint64 {
+	return fs.mapToRepositoryFsByPath(path).ObjectID(path, fi)
 }
